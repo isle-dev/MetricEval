@@ -42,13 +42,13 @@ concurrent_val_table = MetricEval.concurrent_validity(data, criterion)
 MetricEval.print_concurrent_validity_table(concurrent_val_table)
 
 # metric consistency by N
+# This may take a while to run
 Ns = np.arange(10, 110, 10)
 metric_names = data.columns[2:].tolist()
 
-# metric_consistency_byN = pd.DataFrame(index=[f'N{N}' for N in Ns], columns=metric_names)
+metric_consistency_byN = pd.DataFrame(index=[f'N{N}' for N in Ns], columns=metric_names)
+for N in Ns:
+    alphas, _ = MetricEval.metric_consistency(data, N=N)
+    metric_consistency_byN.loc[f'N{N}'] = [alphas.get(metric, np.nan) for metric in metric_names]
 
-# for N in Ns:
-#     alphas, _ = MetricEval.metric_consistency(data, N=N)
-#     metric_consistency_byN.loc[f'N{N}'] = [alphas.get(metric, np.nan) for metric in metric_names]
-
-# print(metric_consistency_byN.round(2))
+print(metric_consistency_byN.round(2))
