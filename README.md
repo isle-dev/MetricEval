@@ -7,7 +7,7 @@ In this repo, you will find the supplementary material of our paper and the impl
 
 ```
 @article{xiao2023evaluating,
-  title={Evaluating NLG Evaluation Metrics: A Measurement Theory Perspective},
+  title={Evaluating Evaluation Metrics: A Framework for Analyzing NLG Evaluation Metrics using Measurement Theory},
   author={Xiao, Ziang and Zhang, Susu and Lai, Vivian and Liao, Q Vera},
   journal={arXiv preprint arXiv:2305.14889},
   year={2023}
