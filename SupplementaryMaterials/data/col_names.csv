@@ -1,0 +1,55 @@
+expert_annotations_1_coherence,Expert-1-COH
+expert_annotations_1_consistency,Expert-1-CON
+expert_annotations_1_fluency,Expert-1-FLU
+expert_annotations_1_relevance,Expert-1-REL
+expert_annotations_2_coherence,Expert-2-COH
+expert_annotations_2_consistency,Expert-2-CON
+expert_annotations_2_fluency,Expert-2-FLU
+expert_annotations_2_relevance,Expert-2-REL
+expert_annotations_3_coherence,Expert-3-COH
+expert_annotations_3_consistency,Expert-3-CON
+expert_annotations_3_fluency,Expert-3-FLU
+expert_annotations_3_relevance,Expert-3-REL
+rerun_cider_cider,CIDEr
+rerun_s3_s3_pyr,S3-pyr
+rerun_s3_s3_resp,S3-resp
+rerun_bleu_bleu,BLEU
+rerun_rouge_we_1a_rouge_we_1_f,ROUGE-we-1
+rerun_rouge_we_2a_rouge_we_2_f,ROUGE-we-2
+rerun_rouge_we_3a_rouge_we_3_f,ROUGE-we-3
+rerun_chrf_chrf,CHRF
+rerun_summaqa_summaqa_avg_fscore,SummaQA
+rerun_stats_coverage,Stats-coverage
+rerun_stats_density,Stats-density
+rerun_stats_compression,Stats-compression
+rerun_stats_summary_length,Stats-length
+rerun_stats_percentage_novel_1.gram,Novel uni-gram
+rerun_stats_percentage_repeated_1.gram_in_summ,Repeated uni-gram
+rerun_stats_percentage_novel_2.gram,Novel bi-gram
+rerun_stats_percentage_repeated_2.gram_in_summ,Repeated bi-gram
+rerun_stats_percentage_novel_3.gram,Novel tri-gram
+rerun_stats_percentage_repeated_3.gram_in_summ,Repeated tri-gram
+rerun_meteor_meteor,METEOR
+rerun_rouge_rouge_1_f_score,ROUGE-1
+rerun_rouge_rouge_2_f_score,ROUGE-2
+rerun_rouge_rouge_3_f_score,ROUGE-3
+rerun_rouge_rouge_4_f_score,ROUGE-4
+rerun_rouge_rouge_l_f_score,ROUGE-L
+rerun_rouge_rouge_w_1.2_f_score,ROUGE-w
+rerun_rouge_rouge_su._f_score,ROUGE-su*
+rerun_bert_score_bert_score_precision,BertScore_p
+rerun_bert_score_bert_score_recall,BertScore_r
+rerun_bert_score_bert_score_f1,BertScore_f1
+rerun_blanc_blanc,BLANC
+rerun_supert_supert,SUPERT
+rerun_mover_score_mover_score,MoverScore
+rerun_bart_score_bart_score,BARTScore
+rerun_bluert_bluert,BLUERT
+gpt3.5_coherence,G-EVAL-3.5-COH
+ gpt3.5_consistency,G-EVAL-3.5-CON
+ gpt3.5_fluency,G-EVAL-3.5-FLU
+ gpt3.5_relevance,G-EVAL-3.5-REL
+ gpt4_coherence,G-EVAL-4-COH
+ gpt4_consistency,G-EVAL-4-CON
+ gpt4_fluency,G-EVAL-4-FLU
+ gpt4_relevance,G-EVAL-4-REL

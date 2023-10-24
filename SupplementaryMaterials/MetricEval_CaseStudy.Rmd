@@ -1,0 +1,776 @@
+---
+title: "MetricEval Case Study"
+output: pdf_document
+date: "2023-06"
+author: "Ziang Xiao*, Susu Zhang*, Vivian Lai, Q. Vera Liao"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(ggplot2)
+library(factoextra)
+library(caret)
+library(regsem)
+library(psych)
+library(lavaan)
+library(tidyverse)
+library(magrittr)
+library(corrplot)
+library(superheat)
+library(xtable)
+library(semTools)
+
+main_dataset = read.csv("data/MetricEval_SummEval.csv")
+#names(main_dataset)
+# sink('colnames.txt')
+# names(main_dataset)
+# sink()
+col_names <- read.csv('data/col_names.csv',header = F)
+
+```
+
+# loading data and exploratory
+
+
+## load data
+```{r , echo=FALSE}
+# 1st run
+main_dataset.metric1_human = main_dataset[,c("model_id",
+                                            "expert_annotations_1_coherence",
+                                            "expert_annotations_1_consistency",
+                                            "expert_annotations_1_fluency",
+                                            "expert_annotations_1_relevance",
+                                            "expert_annotations_2_coherence",
+                                            "expert_annotations_2_consistency",
+                                            "expert_annotations_2_fluency",
+                                            "expert_annotations_2_relevance",
+                                            "expert_annotations_3_coherence",
+                                            "expert_annotations_3_consistency",
+                                            "expert_annotations_3_fluency",
+                                            "expert_annotations_3_relevance",
+                                            "rerun_cider_cider",
+                                            "rerun_s3_s3_pyr",
+                                            "rerun_s3_s3_resp",
+                                            "rerun_bleu_bleu",
+                                            "rerun_rouge_we_1a_rouge_we_1_f",
+                                            "rerun_rouge_we_2a_rouge_we_2_f",
+                                            "rerun_rouge_we_3a_rouge_we_3_f",
+                                            "rerun_chrf_chrf",
+                                            "rerun_summaqa_summaqa_avg_fscore",
+                                            "rerun_stats_coverage",
+                                            "rerun_stats_density",
+                                            "rerun_stats_compression",
+                                            "rerun_stats_summary_length",
+                                            "rerun_stats_percentage_novel_1.gram",
+                                            "rerun_stats_percentage_repeated_1.gram_in_summ",
+                                            "rerun_stats_percentage_novel_2.gram",
+                                            "rerun_stats_percentage_repeated_2.gram_in_summ",
+                                            "rerun_stats_percentage_novel_3.gram",
+                                            "rerun_stats_percentage_repeated_3.gram_in_summ",
+                                            "rerun_meteor_meteor",
+                                            "rerun_rouge_rouge_1_f_score",
+                                            "rerun_rouge_rouge_2_f_score",
+                                            "rerun_rouge_rouge_3_f_score",
+                                            "rerun_rouge_rouge_4_f_score",
+                                            "rerun_rouge_rouge_l_f_score",
+                                            "rerun_rouge_rouge_w_1.2_f_score",
+                                            "rerun_rouge_rouge_su._f_score",
+                                            #"rerun_sms2_sentence_movers_glove_sms",
+                                            "rerun_bert_score_bert_score_precision",
+                                            "rerun_bert_score_bert_score_recall",
+                                            "rerun_bert_score_bert_score_f1",
+                                            "rerun_blanc_blanc",
+                                            "rerun_supert_supert",
+                                            "rerun_mover_score_mover_score",
+                                            "rerun_bart_score_bart_score",
+                                            "rerun_bluert_bluert",
+                                            "gpt3.5_coherence",
+                                            "gpt3.5_consistency",
+                                            "gpt3.5_fluency",
+                                            "gpt3.5_relevance",
+                                            "gpt4_coherence",
+                                            "gpt4_consistency",
+                                            "gpt4_fluency",
+                                            "gpt4_relevance"
+                                            )]
+# main_dataset.metric1_human$metric_scores_1_supert <- gsub(pattern = "\\[|\\]", replacement = "", x = main_dataset.metric1_human$metric_scores_1_supert)
+# main_dataset.metric1_human$metric_scores_1_supert <- as.numeric(main_dataset.metric1_human$metric_scores_1_supert)
+
+
+# 2nd run
+main_dataset.metric1_human_rerun = main_dataset[,c("model_id",
+                                            "expert_annotations_1_coherence",
+                                            "expert_annotations_1_consistency",
+                                            "expert_annotations_1_fluency",
+                                            "expert_annotations_1_relevance",
+                                            "expert_annotations_2_coherence",
+                                            "expert_annotations_2_consistency",
+                                            "expert_annotations_2_fluency",
+                                            "expert_annotations_2_relevance",
+                                            "expert_annotations_3_coherence",
+                                            "expert_annotations_3_consistency",
+                                            "expert_annotations_3_fluency",
+                                            "expert_annotations_3_relevance",
+                                            "rerun_cider2_cider",
+                                            "rerun_s3_2_s3_pyr",
+                                            "rerun_s3_2_s3_resp",
+                                            "rerun_bleu2_bleu",
+                                            "rerun_rouge_we_1b_rouge_we_1_f",
+                                            "rerun_rouge_we_2b_rouge_we_2_f",
+                                            "rerun_rouge_we_3b_rouge_we_3_f",
+                                            "rerun_chrf2_chrf",
+                                            "rerun_summaqa2_summaqa_avg_fscore",
+                                            "rerun_stats2_coverage",
+                                            "rerun_stats2_density",
+                                            "rerun_stats2_compression",
+                                            "rerun_stats2_summary_length",
+                                            "rerun_stats2_percentage_novel_1.gram",
+                                            "rerun_stats2_percentage_repeated_1.gram_in_summ",
+                                            "rerun_stats2_percentage_novel_2.gram",
+                                            "rerun_stats2_percentage_repeated_2.gram_in_summ",
+                                            "rerun_stats2_percentage_novel_3.gram",
+                                            "rerun_stats2_percentage_repeated_3.gram_in_summ",
+                                            "rerun_meteor2_meteor",
+                                            "rerun_rouge2_rouge_1_f_score",
+                                            "rerun_rouge2_rouge_2_f_score",
+                                            "rerun_rouge2_rouge_3_f_score",
+                                            "rerun_rouge2_rouge_4_f_score",
+                                            "rerun_rouge2_rouge_l_f_score",
+                                            "rerun_rouge2_rouge_w_1.2_f_score",
+                                            "rerun_rouge2_rouge_su._f_score",
+                                            #"rerun_sms2_sentence_movers_glove_sms",
+                                            "rerun_bert_score2_bert_score_precision",
+                                            "rerun_bert_score2_bert_score_recall",
+                                            "rerun_bert_score2_bert_score_f1",
+                                            "rerun_blanc2_blanc",
+                                            "rerun_supert2_supert",
+                                            "rerun_mover_score2_mover_score",
+                                            "rerun_bart2_score_bart_score",
+                                            "rerun_bluert2_bluert",
+                                            "gpt3.5_coherence2",
+                                            "gpt3.5_consistency2",
+                                            "gpt3.5_fluency2",
+                                            "gpt3.5_relevance2",
+                                            "gpt4_coherence2",
+                                            "gpt4_consistency2",
+                                            "gpt4_fluency2",
+                                            "gpt4_relevance2"
+                                            )]
+
+colnames(main_dataset.metric1_human) <- colnames(main_dataset.metric1_human_rerun) <- c('model_id', col_names[,2])
+
+```
+
+## descriptives
+
+
+```{r}
+pdf('expert_rating_barplots.pdf', family = 'serif',
+    height = 4)
+main_dataset.metric1_human %>%
+  select(`Expert-1-COH`:`Expert-3-REL`) %>% 
+  pivot_longer(cols = everything(),values_to = 'Score',names_to = 'Metric') %>%
+  ggplot(aes(x = Metric, fill = as.factor(Score))) +
+  geom_bar(position = 'fill') + scale_fill_brewer() + 
+  theme(axis.text.x = element_text(angle = 45,  hjust=1,size = 6))
+dev.off()
+
+```
+
+
+Normalize the machine evals:
+
+```{r}
+# normalize2 transforms the raw scores to approximately follow N(0,1)
+normalize2 <- function(x) scale(sapply(x, function(y) qnorm(.001+.998*mean(x <= y))))
+
+# change column names
+fa_df <- main_dataset.metric1_human_rerun
+# colnames(fa_df) <- gsub('annotations_|_in_summ', '',
+#                    colnames(fa_df))
+# colnames(fa_df) <- gsub('percentage', '%',
+#                    colnames(fa_df))
+# colnames(fa_df) <- gsub('rerun_([[:alnum:]]+|s3_|mover_score|rouge_we|bert_score)(2|_[123]a|_[123]b)_', '',colnames(fa_df))
+# colnames(fa_df) <- gsub('([[:alpha:]]+)(2)','\\1',colnames(fa_df))
+# colnames(fa_df)
+
+# normalize non-expert evals: Run 2
+fa_df[,-(1:13)] <- apply(fa_df[,-(1:13)], 2, normalize2)
+fa_df_run2 <- fa_df
+
+# Run 1
+fa_df_run1 <- main_dataset.metric1_human
+#colnames(fa_df_run1) <- colnames(fa_df_run2)
+fa_df_run1[,-(1:13)] <- apply(fa_df_run1[,-(1:13)], 2, normalize2) 
+```
+
+
+# Reliability
+
+Here, we treat each model as an examinee, each data point in the test set as an item. 
+Each eval metric is treated as a test (where total test score is the sum/mean score across all 100 examples).
+
+*Note: For coefficient alpha, desired sample size should be larger than 30. Here, 17 is not ideal.*
+
+```{r}
+coeff.alpha <- function(responses){
+  # Get number of items (N) and individuals
+  n.items <- ncol(responses)
+  n.persons <- nrow(responses)
+  # Get individual total scores
+  x <- rowSums(responses)
+  # Get observed-score variance of whole test (X)
+  var.x <- var(x)*(n.persons-1)/n.persons
+  # Get observed-score variance of each item (Y_j)
+  var.y <- numeric(n.items)
+  for(i in 1:n.items){
+    var.y[i] <- var(responses[,i])*(n.persons-1)/n.persons
+  }
+  # Apply the alpha formula
+  alpha <- (n.items/(n.items-1))*(1 - sum(var.y)/var.x)
+  return(alpha)
+}
+
+
+# calculate alpha based on rescaled (0 - 1) scores
+alphas <- stability <- numeric(ncol(fa_df) - 1)
+for(m in 1:(ncol(fa_df) - 1)){
+  # metric consistency
+  df <- data.frame(item = main_dataset$id, fa_df)[,c(1:2,(m+2))]
+  df %>%
+    pivot_wider(id_cols = model_id, 
+                names_from = item,
+                values_from = names(df)[3]) %>% select(-model_id) %>%
+    as.matrix() ->resp
+  alphas[m] <- coeff.alpha(resp)
+  # metric stability
+  run1 <- data.frame(model_id = fa_df_run1$model_id,
+                     score = fa_df_run1[,(m+1)])
+  mean_scr_rep1 <- run1 %>% group_by(model_id) %>%summarise(m = mean(score))
+  run2 <- data.frame(model_id = fa_df_run2$model_id,
+                     score = fa_df_run2[,(m+1)])
+  mean_scr_rep2 <- run2 %>% group_by(model_id) %>%summarise(m = mean(score))
+  stability[m] <- cor(mean_scr_rep1$m, mean_scr_rep2$m)
+}
+
+names(alphas) <- names(stability) <- colnames(fa_df)[-1]
+stability[1:12] <- NA
+
+
+pdf('reliab_ests_normalized.pdf', family = 'serif',
+   height = 4)
+data.frame(Metric = factor(colnames(fa_df)[-1], levels = colnames(fa_df)[-1]),
+           stability,
+           consistency = alphas) %>% 
+#  mutate(Metric = fct_reorder(metric, consistency)) %>%
+  pivot_longer(cols = stability:consistency,
+               values_to = 'Estimate',
+               names_to = 'Reliability coef.')%>%
+  ggplot(aes(x = Metric, y = Estimate, shape = `Reliability coef.`, col = `Reliability coef.`)) + 
+  geom_point(stat = 'identity')+
+  theme(axis.text.x = element_text(angle = 45,  hjust=1,size = 5))+
+  ylim(c(.75,1))
+dev.off()
+
+```
+
+```{r}
+# compute alpha on resp matrix with missingness
+coeff.alpha_miss <- function(responses){
+  C <- var(responses, use = 'pairwise.complete.obs')
+  n <- ncol(responses)
+  alpha <- (1 - tr(C)/sum(C)) * (n/(n - 1))
+  
+  return(alpha)
+}
+
+# computes metric consistency from long data
+# data: data.frame containing the following columns:
+  # test_id: array containing ids to test examples
+  # model_id: character array containing ids of models
+  # additional columns containing scores on each metric (metric name as column name)
+# N: optional; size of subset of test set examples for computing average metric score. 
+# By default the total number of test set examples will be used.
+metric.consistency <- function(data, N = -1){
+  metric_scores <- data %>% select(-test_id, -model_id)
+  n_metrics <- ncol(metric_scores)
+  # for storing alpha and standard error of measurement of each model
+  alphas <- sems <- numeric(n_metrics)
+  for(m in 1:n_metrics){
+    df <- data.frame(test_id = data$test_id, 
+                     model_id = data$model_id,
+                     metric_scores[m])
+    df %>%
+      pivot_wider(id_cols = model_id, 
+                  names_from = test_id,
+                  values_from = names(df)[3]) %>% select(-model_id) %>%
+      as.matrix() ->responses
+    n.models <- nrow(responses)
+    if(N == -1) N <- ncol(responses)
+    combs <- t(replicate(200, sort(sample(1:ncol(responses), N, replace = F))))
+    combs <- unique(combs)
+    # compute alpha for each replicate
+    alpha_reps <- sem_reps <-  numeric(nrow(combs))
+    for(r in 1:nrow(combs)){
+      alpha_reps[r] <- coeff.alpha_miss(responses[,combs[r,]])
+      sem_reps[r] <- sd(rowMeans(responses[,combs[r,]], na.rm = T))*sqrt(1-alpha_reps[r])
+    }
+    alphas[m] <- mean(alpha_reps)
+    sems[m] <- mean(sem_reps)
+  }
+  names(alphas) <- names(sems) <- colnames(metric_scores)
+  return(list(alphas = alphas, sems = sems))
+}
+
+long_df <- data.frame(test_id = main_dataset$id,
+                      main_dataset.metric1_human_rerun)
+
+
+metric.consistency(long_df)
+
+Ns <- seq(10,100, 10)
+
+metric_consistency_byN <- matrix(NA, nrow = length(Ns), ncol = ncol(long_df)-2)
+for(i in 1:length(Ns)){
+  metric_consistency_byN[i,] <- metric.consistency(long_df, Ns[i])$alphas
+}
+
+colnames(metric_consistency_byN) <- names(long_df)[-(1:2)]
+rownames(metric_consistency_byN) <- paste0('N',Ns)
+
+
+metric_consistency_byN %>% as.tibble() %>% select( 
+                                  G.EVAL.3.5.COH:G.EVAL.4.REL)->plot_df
+pdf('Geval_cons_byN.pdf',width = 7, height = 5)
+matplot(x = seq(10, 100, by = 10), 
+        plot_df, type = 'l',lwd = 2,
+        col = 1:4, lty = rep(2:1,each=4),
+        ylab = 'Metric consistency',
+        xlab = 'Number of test examples',
+        cex.lab = 1.2)
+legend('bottomright', legend = colnames(plot_df), 
+       lty = rep(2:1,each=4), col = 1:4,lwd = 2)
+dev.off()
+```
+
+
+
+
+# Validity
+
+
+## Factor analysis: expert ratings only: Examining how well the 4-construct model explains the expert rating data.
+
+
+```{r}
+fa_df_cfa <- fa_df
+colnames(fa_df_cfa)[2:13] <- gsub('-','_',colnames(fa_df_cfa)[2:13])
+fdim.expert <- paste0('coherence =~ ', 
+                     paste0(colnames(fa_df_cfa)[c(2,6,10)],collapse = '+'),'\n',
+                     'consistency =~ ',
+                     paste0(colnames(fa_df_cfa)[c(3,7,11)],collapse = '+'),'\n',
+                       'fluency =~ ',
+                     paste0(colnames(fa_df_cfa)[c(4,8,12)],collapse = '+'),'\n',
+                     'relevance =~',
+                     paste0(colnames(fa_df_cfa)[c(5,9,13)],collapse = '+')
+                     )
+
+
+fdim.expert.fit <- cfa(fdim.expert, 
+           data = fa_df_cfa,std.lv = T,
+           ordered = colnames(fa_df_cfa)[2:13])
+
+summary(fdim.expert.fit,fit.measures = T) 
+
+parests <- lavInspect(fdim.expert.fit, what = 'est')
+itempar_table <- round(cbind(parests$lambda, matrix(parests$tau,ncol = 4,byrow = T)),2)
+colnames(itempar_table)[5:8] <- paste0('t',1:4)
+xtable(itempar_table)
+
+# correlations
+round(parests$psi,2)
+
+```
+
+
+To obtain factor scores that are unaffected by other dimensions (free from influence of the high correlation with other factors):
+
+```{r}
+fdim_orth.expert <- paste0('coherence =~ ', 
+                     paste0(colnames(fa_df_cfa)[c(2,6,10)],collapse = '+'),'\n',
+                     'consistency =~ ',
+                     paste0(colnames(fa_df_cfa)[c(3,7,11)],collapse = '+'),'\n',
+                       'fluency =~ ',
+                     paste0(colnames(fa_df_cfa)[c(4,8,12)],collapse = '+'),'\n',
+                     'relevance =~',
+                     paste0(colnames(fa_df_cfa)[c(5,9,13)],collapse = '+'),'\n',
+                     # adding constraints here
+                     'coherence ~~ 0*consistency', '\n',
+                     'coherence ~~ 0*fluency', '\n',
+                     'coherence ~~ 0*relevance', '\n',
+                     'consistency ~~ 0*fluency', '\n',
+                     'consistency ~~ 0*relevance', '\n',
+                     'fluency ~~ 0*relevance'
+                     )
+
+fdim_orth.expert.fit <- cfa(fdim_orth.expert, 
+           data = fa_df_cfa,std.lv = T,
+           ordered = colnames(fa_df_cfa)[2:13])
+
+
+fscores <- lavPredict(fdim_orth.expert.fit)
+
+```
+
+
+## Concurrent validity of the auto evals
+
+
+Based on factor scores, evaluate the relationship between each machine-based metric and human factor score:
+
+
+```{r}
+# correlations: model level 4 factor scores (average across 100 examples)
+data.frame(model_id = fa_df$model_id, 
+           fscores ) %>% 
+  group_by(model_id) %>%
+  summarize_all(mean) -> mean_fscores_bymodel
+# model-level metric scores (average across 100 exapmles)
+fa_df %>% group_by(model_id) %>%
+  summarize_at(vars(CIDEr:`G-EVAL-4-REL`), mean) -> mean_metric_bymodel
+# concurrent validities
+cor_model_eval_exfscores <- matrix(NA, nrow = (ncol(mean_metric_bymodel)-1), ncol = 4)
+for( f in 1:4){
+  cor_model_eval_exfscores[,f] <- cor(mean_metric_bymodel[,-1], mean_fscores_bymodel[,(f+1)],method = 'kendall')
+}
+rownames(cor_model_eval_exfscores) <- colnames(mean_metric_bymodel)[-1]
+colnames(cor_model_eval_exfscores) <- c("Coherence","Consistency","Fluency","Relevance")
+# round(cor_model_eval_exfscores, 2)
+pdf('concurrent_val_4factor.pdf', height = 2)
+corrplot(t(cor_model_eval_exfscores), method = 'number',
+         number.cex = .35,tl.cex = .4,tl.srt =30,tl.col = "black",
+         cl.cex = .4)
+dev.off()
+
+
+
+# plotting a subset
+# model-level metric scores (average across 100 exapmles)
+#fa_df %>% group_by(model_id) %>%
+  #summarize_at(vars(SummaQA, METEOR, BARTScore, `G-EVAL-3.5-COH`:`G-EVAL-4-REL`), mean) -> mean_metric_bymodel_subset
+fa_df %>% group_by(model_id) %>%
+  summarize_at(vars(CIDEr,`S3-pyr`,SummaQA, METEOR, `ROUGE-1`,BertScore_f1,BLANC,SUPERT,MoverScore,BARTScore, BLUERT, `G-EVAL-4-COH`:`G-EVAL-4-REL`), mean) -> mean_metric_bymodel_subset
+# concurrent validities
+cor_model_eval_exfscores_subset <- matrix(NA, nrow = (ncol(mean_metric_bymodel_subset)-1), ncol = 4)
+for( f in 1:4){
+  cor_model_eval_exfscores_subset[,f] <- cor(mean_metric_bymodel_subset[,-1], mean_fscores_bymodel[,(f+1)],method = 'kendall')
+}
+rownames(cor_model_eval_exfscores_subset) <- colnames(mean_metric_bymodel_subset)[-1]
+colnames(cor_model_eval_exfscores_subset) <- c("Coherence","Consistency","Fluency","Relevance")
+# round(cor_model_eval_exfscores_subset, 2)
+pdf('concurrent_val_4factor_subset.pdf', height = 2)
+corrplot(t(cor_model_eval_exfscores_subset), method = 'number',
+         number.cex = .8,tl.cex = .8,tl.srt =30,tl.col = "black",
+         cl.cex = .8)
+dev.off()
+
+```
+
+
+
+
+comparison with 4 dimension expert ratings based on raw means
+
+```{r}
+
+fa_df %>% group_by(model_id) %>%
+  summarize_at(vars(`Expert-1-COH`:`Expert-3-REL`), mean) %>%
+  mutate(
+    Expert_COH = (`Expert-1-COH` + `Expert-2-COH`+ `Expert-3-COH`)/3,
+    Expert_CON = (`Expert-1-CON` + `Expert-2-CON`+ `Expert-3-CON`)/3,
+    Expert_FLU = (`Expert-1-FLU` + `Expert-2-FLU`+ `Expert-3-FLU`)/3,
+    Expert_REL = (`Expert-1-REL` + `Expert-2-REL`+ `Expert-3-REL`)/3
+  ) %>% select(
+    Expert_COH,Expert_CON,Expert_FLU,Expert_REL
+  ) ->mean_exp_bymodel
+
+cor_model_eval_exmean <- matrix(NA, nrow = (ncol(mean_metric_bymodel)-1), ncol = 4)
+
+for( f in 1:4){
+  cor_model_eval_exmean[,f] <- cor(mean_metric_bymodel[,-1], mean_exp_bymodel[,f],method = 'kendall')
+}
+rownames(cor_model_eval_exmean) <- colnames(mean_metric_bymodel)[-1]
+colnames(cor_model_eval_exmean) <- colnames(mean_exp_bymodel)
+# round(cor_model_eval_exmean, 2)
+pdf('concurrent_val_exprawmean.pdf', height = 2)
+corrplot(t(cor_model_eval_exmean), method = 'number',
+         number.cex = .35,tl.cex = .4,tl.srt =30,
+         cl.cex = .4)
+dev.off()
+
+pdf('exp_fscore_vs_mean.pdf')
+par(mfrow = c(2,2))
+for(f in 1:4){
+  plot(unlist(mean_fscores_bymodel[,(f+1)]), 
+       unlist(mean_exp_bymodel[,f]),
+       type = 'n',
+       xlab= 'factor score', ylab = 'raw mean',
+       main = paste0(colnames(mean_fscores_bymodel)[f+1],
+                     ': ',round(cor(mean_fscores_bymodel[,(f+1)], 
+                     mean_exp_bymodel[,f],
+                     method = 'kendall'),2)))
+  text(unlist(mean_fscores_bymodel[,(f+1)]), 
+       unlist(mean_exp_bymodel[,f]),
+       labels = mean_fscores_bymodel$model_id,
+       cex = .2)
+}
+dev.off()
+
+
+pdf('concurr_w_exp_fscore_vs_mean.pdf')
+par(mfrow = c(2,2))
+for(f in 1:4){
+  plot(unlist(cor_model_eval_exfscores[,(f)]), 
+       unlist(cor_model_eval_exmean[,f]),
+       pch = 19, cex = .6,
+       xlab= 'based on factor score', ylab = 'based on raw mean',
+       main = paste0(colnames(mean_fscores_bymodel)[f+1],
+                     ': ',round(cor(cor_model_eval_exfscores[,(f)], 
+                     cor_model_eval_exmean[,f],method = 'kendall'),3)))
+  abline(0,1, lty = 2)
+}
+dev.off()
+
+```
+
+# Fixing the expert rating dimension factor scores and estimate auto metric loadings
+
+## loadings on 4 single factors
+
+This one uses the factor scores estimated from the `fdim_orth.expert` model. Conditional on the factor score of each dimension estimated from the expert ratings, it estimates the loadings of the machine-based evals on that dimension only (w/ a single factor model).
+
+```{r}
+source("cmle_lin_fa.R")
+# theta ests
+fdim.orth_thetas <- lavPredict(fdim_orth.expert.fit)
+fdim.orth_thetas <- scale(fdim.orth_thetas)
+# machine evals
+resp <- as.matrix(fa_df[-(1:13)])
+# estimate eval loadings and sigmas
+J <- ncol(resp)
+D <- ncol(fdim.orth_thetas)
+a_ests <- matrix(NA, nrow = J, ncol  =(D))
+#sig_ests <- numeric(J)
+for(j in 1:J){
+  init <- c(numeric(2),1)
+  for(d in 1:D){
+    out <- optim(init,fn = lin_fa_nll,
+                  Y_j = resp[,j], thetas = as.matrix(fdim.orth_thetas[,d]))
+    a_ests[j,d] <- out$par[2]
+    #sig_ests[j] <- out$par[(D+2)]
+  }
+}
+
+
+colnames(a_ests) <- c(colnames(fdim.orth_thetas))
+rownames(a_ests) <- colnames(resp)
+round(a_ests, 2)
+pdf('loadings_sep_factors.pdf', height = 2)
+corrplot(t(a_ests), method = 'number',
+         number.cex = .35,tl.cex = .4,tl.srt =30,
+         cl.cex = .4)
+dev.off()
+```
+
+## Clustering on residual covariance structure
+
+This one instead assumes the 4-factor model, regresses each auto eval on the 4 factor's scores obtained from the expert ratings above, and looks at the residual clustering structure:
+
+```{r}
+a_ests <- matrix(NA, nrow = J, ncol  =(D+1))
+sig_ests <- numeric(J)
+for(j in 1:J){
+  init <- c(numeric(D+1),1)
+  out <- optim(init,fn = lin_fa_nll,
+                      Y_j = resp[,j], thetas = fdim.orth_thetas)
+  a_ests[j,] <- out$par[-(D+2)]
+  sig_ests[j] <- out$par[(D+2)]
+}
+
+
+colnames(a_ests[,-1]) <- c(colnames(fdim.orth_thetas))
+rownames(a_ests) <- colnames(resp)
+round(a_ests, 2)
+pdf('loadings_4_factors.pdf', height = 2)
+corrplot(t(a_ests[,-1]), method = 'number',
+         number.cex = .35,tl.cex = .4,tl.srt =30,
+         cl.cex = .4)
+dev.off()
+
+
+
+resid <- resp - cbind(1, fdim.orth_thetas)%*%t(a_ests)
+dim(resid)
+range(resid)
+hist(resid)
+colnames(resid) <- colnames(resp)
+sort(round(apply(resid, 2, var),2))
+
+res_cor <- cor(resid)
+#View(round(res_cor,2))
+pdf('res_cor_heat_hier.pdf')
+superheat(res_cor,
+          # dendrograms
+          row.dendrogram = T,
+          clustering.method = 'hierarchical',
+          # gird lines
+          grid.hline.col = "white",
+          grid.vline.col = "white",
+          # bottom label
+          bottom.label.text.angle = 90,
+          bottom.label.text.alignment ='right',
+          left.label.text.alignment = 'right',
+          left.label.text.size = 1.1,
+          bottom.label.text.size = 1.5,
+          heat.pal = cm.colors(5))
+dev.off()
+
+```
+
+```{r}
+library(ggrepel)
+tmp <- prcomp(t(resid))
+x <- tmp$x[,1:2]
+dat <- data.frame(x, metric = colnames(resid))
+p <- ggplot(dat, aes(PC1, PC2, label = metric)) +
+  geom_point(color = "red")
+p <- p + geom_text_repel(max.overlaps = Inf,size=3,
+                    segment.color = 'gray') 
+pdf('res_pca_2d.pdf',width = 7, height = 4.5)
+plot(p)
+dev.off()
+
+```
+
+
+## construct val of expert ratings and gpt
+
+MTMM table: expert
+
+```{r}
+# MTMM table
+MTMM_design <- data.frame(
+  trait = rep(c('COH','CON','FLU','REL'), 3),
+  method = rep(paste0('Expert_',1:3), each = 4),
+  metric = colnames(long_df)[3:14]
+)
+
+
+# Function for constructing MTMM table. 
+# data: data.frame containing the following columns:
+  # test_id: array containing ids to test examples
+  # model_id: character array containing ids of models
+  # additional columns containing scores on each metric (metric name as column name)
+# design: table containing 3 columns: trait, method, and corresponding
+# metric name. Metric names should correspond to score columns in data matrix.
+MTMM <- function(data, 
+                 design, 
+                 method = 'kendall'){
+  design <- design %>% arrange(trait, method)
+  MTMM_data <- data[,c('model_id','test_id', design$metric)]
+  MTMM_df <- MTMM_data %>% select(-test_id) %>%
+    group_by(model_id)%>% 
+    summarise_all(mean, na.rm = T)%>%
+    select(-model_id)
+  MTMM_cor <- round(cor(MTMM_df,method = method),2)
+  MTMM_cor[lower.tri(MTMM_cor)] <- '-'
+  diag(MTMM_cor) <- round(metric.consistency(MTMM_data)$alphas,2)
+  for(i in 1:nrow(design)){
+    for(j in i:nrow(design)){
+      if(design$trait[i]==design$trait[j] & 
+         design$method[i]!=design$method[j]){
+        MTMM_cor[i,j] <- paste0('*',MTMM_cor[i,j],'*')
+      }
+      if(design$method[i]==design$method[j] &
+         design$trait[i]!=design$trait[j]){
+        MTMM_cor[i,j] <- paste0('(',MTMM_cor[i,j],')')
+      }
+    }
+  }
+  design <- design %>% 
+    mutate(trait = if_else(lag(trait,default = '') == trait, '',trait))
+  rownames(MTMM_cor) <- colnames(MTMM_cor) <- NULL
+  design_short <- design[,1:2]
+  design_short[,1]
+  MTMM_print <- matrix(NA,nrow(design)+2, nrow(design)+2)
+  MTMM_print[(1:nrow(design))+2,(1:nrow(design))+2] <- MTMM_cor
+  MTMM_print[1:2,] <- cbind('','',t(design[,1:2]))
+  MTMM_print[-(1:2),1:2] <- as.matrix(design[,1:2])
+  return(MTMM_print)
+}
+
+
+MTMM(long_df, MTMM_design)
+
+xtable(MTMM(long_df, MTMM_design))
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MTMM table - expert and GPT
+
+```{r}
+MTMM_df <- cbind(fa_df[,c(1, which(grepl('COH|CON|FLU|REL', colnames(fa_df))))], 
+                 fscores)
+alphas_mtmm <- alphas[which(grepl('COH|CON|FLU|REL', colnames(fa_df)))-1]
+
+MTMM_mean_scrs <- MTMM_df%>% group_by(model_id)%>% summarise_all(mean)
+MTMM_df <- MTMM_mean_scrs
+
+# gpt score vs human expert factor 
+MTMM_exp_v_gpt <- cor(MTMM_df[,c(22:25,14:21)], method = 'kendall')
+corrplot(MTMM_exp_v_gpt,type = 'upper',method = 'number', number.cex = .7)
+
+MTMM_exp_v_gpt[lower.tri(MTMM_exp_v_gpt)] <- NA
+diag(MTMM_exp_v_gpt) <- alphas_mtmm[c(22:25,14:21)-1]
+#View(round(MTMM_exp, 2))
+xtable(round(MTMM_exp_v_gpt, 2))
+
+
+# manually fill in reliability of factor scores
+
+alpha_fscores <- numeric(4)
+for(m in 1:(ncol(fscores))){
+  # metric consistency
+  df <- data.frame(item = main_dataset$id,model_id = fa_df$model_id,fscores)[,c(1:2,(m+2))]
+  df %>%
+    pivot_wider(id_cols = model_id, 
+                names_from = item,
+                values_from = names(df)[3]) %>% select(-model_id) %>%
+    as.matrix() ->resp
+  alpha_fscores[m] <- coeff.alpha(resp)
+}
+round(alpha_fscores,2)
+
+
+
+
+```
+
+
+
