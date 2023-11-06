@@ -1,11 +1,11 @@
 # MetricEval
 MetricEval: A framework that conceptualizes and operationalizes four main components of metric evaluation, in terms of reliability and validity. Please see [Evaluating Evaluation Metrics: A Framework for Analyzing NLG Evaluation Metrics using Measurement Theory](https://arxiv.org/abs/2305.14889) for more details. 
 
-<img src="assets/MetricEvalFramework.jpg" width="500"  />
+<img src="../assets/MetricEvalFramework.jpg" width="500"  />
 
 ## Summary
 
-In this repo, you will find the supplementary material of our paper and the implementation of our framework, metric-eval, a python pkg for evaluation metrics analysis.
+In this repo, you will find the implementation of our framework, metric-eval, a python pkg for evaluation metrics analysis.
 
 ```
 @article{xiao2023evaluating,
@@ -15,38 +15,13 @@ In this repo, you will find the supplementary material of our paper and the impl
   year={2023}
 }
 ```
-## Supplementary Material
-The summpelmentary material of our paper is organized as follows:
-```
-├── supplementary_materials
-│   ├── data
-│   │   ├── MetricEval_SummEval.csv
-│   │   ├── col_names.csv
-│   ├── MetricEval_CaseStudy.Rmd
-│   ├── cmle_lin_fa.R
-```
-MetricEval_CaseStudy.Rmd contains the code we used to conduct the case study in the paper. The data folder contains the data we used in the paper. The results presented in our paper along with additional analyses could be found in this file.
-
 ## metirc-eval
+
 ### Quick Start
 
 #### Install from PyPI
 ```bash
 pip install metric-eval
-```
-
-#### Install from Repo
-Clone the repository:
-```bash
-git clone git@github.com:isle-dev/MetricEval.git
-cd metirc-eval
-```
-
-Install Dependencies:
-```bash
-conda create --name metirc-eval python=3.10
-conda activate metirc-eval
-pip install -r requirements.txt
 ```
 
 ### Usage
@@ -114,9 +89,6 @@ criterion = ['Expert.1.COH','Expert.1.CON','Expert.1.FLU','Expert.1.REL']
 concurrent_val_table = metric_eval.concurrent_validity(data, criterion)
 metric_eval.print_concurrent_validity_table(concurrent_val_table)
 ```
-
-## Get Involved
-We welcome contributions from the community! Please create a GitHub issue if you have any questions, suggestions, requests or bug-reports. If you would like to contribute to the codebase, please create a pull request.
 
 ## Contact
 If you have any questions, please contact [Ziang Xiao](https://www.ziangxiao.com/) at ziang dot xiao at jhu dot edu or [Susu Zhang](https://sites.google.com/view/susuzhang/) at szhan105 at illinois dot edu.
